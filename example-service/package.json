@@ -1,7 +1,7 @@
 {
-    "name": "example-service",
+    "name": "ipay88-payment-microservice",
     "version": "1.0.0",
-    "description": "Example service for reference",
+    "description": "iPay88 Payment Microservice",
     "main": "index.js",
     "scripts": {
         "test": "semistandard --fix",
@@ -10,7 +10,7 @@
         "deploy:production": "cd serverless/ && serverless deploy -v --stage production && cd ..",
         "build": "babel ./service/ --out-dir ./serverless/build/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log --copy-files"
     },
-    "author": "Sharie Rapales",
+    "author": "The Buddz",
     "license": "ISC",
     "devDependencies": {
         "babel-cli": "^6.24.1",
@@ -21,7 +21,11 @@
     },
     "dependencies": {
         "axios": "^0.16.2",
-        "dotenv": "^4.0.0"
+        "crypto": "^1.0.1",
+        "dotenv": "^4.0.0",
+        "punycode": "^2.1.0",
+        "sha1": "^1.1.1",
+        "uuid": "^3.1.0"
     },
     "babel": {
         "presets": [

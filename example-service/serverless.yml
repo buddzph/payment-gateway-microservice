@@ -1,0 +1,29 @@
+service: lambda-test
+provider:
+  name: aws
+  runtime: nodejs6.10
+functions:
+  paymentrequest:
+    handler: handler.paymentrequest
+    events:
+     - http:
+         path: ipay88/payment-request
+         method: get
+  requestresponse:
+    handler: handler.requestresponse
+    events:
+     - http:
+         path: ipay88/request-response
+         method: post
+  backendresponse:
+    handler: handler.backendresponse
+    events:
+     - http:
+         path: ipay88/backend-response
+         method: get
+  ipay88handler:
+    handler: handler.ipay88handler
+    events:
+     - http:
+         path: ipay88/ipay88-handler
+         method: post
