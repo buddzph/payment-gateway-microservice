@@ -14,7 +14,8 @@ const uuidv4 = require('uuid/v4');
 // THIS IS THE MODULE TO PROCESS THE PAYMENT GOING TO IPAY88 PAYMENT PAGE
 module.exports.paymentrequest = (event, context, callback) => {
 
-  // TEST URL: https://nt6kh0sqzb.execute-api.us-east-1.amazonaws.com/dev/ipay88/payment-request?hid=0545bee9-420d-4833-8bac-ec2a358c925e
+  // TEST URL: https://nt6kh0sqzb.execute-api.us-east-1.amazonaws.com/dev/ipay88/payment-request?hid=7b54b33e-eee2-47a1-8352-3e94dc9c1f87 - buddz
+  // TEST URL: https://nt6kh0sqzb.execute-api.us-east-1.amazonaws.com/dev/ipay88/payment-request?hid=c4c415c1-712b-4e93-a139-30851876a6d0 - sharie
 
   // REFERENCE: Passing of value
   /*event['pathParameters']['param1']
@@ -66,6 +67,8 @@ module.exports.paymentrequest = (event, context, callback) => {
     let UserName = res.Items[0].name;
     let UserEmail = res.Items[0].email;
     let UserContact = res.Items[0].contact;
+    let bot_alias = res.Items[0].bot_alias;
+    let bot_name = res.Items[0].bot_name;
     let Remark = '';
     let Lang = ipay88.LANG;
     let Signature = sha1.iPay88Signature(MerchantKey + MerchantCode + RefNo + cAmount + Currency); // 'v4f93AFaktObj79KywOlXbLAeTc=';
@@ -73,6 +76,14 @@ module.exports.paymentrequest = (event, context, callback) => {
     let BackendURL = ipay88.BACKEND_URL;
     let PageAccesstoken = res.Items[0].page_access_token;
     let ScopedID = res.Items[0].scoped_id;
+
+    console.log('Items: ', res.Items);
+    console.log('MerchantKey: ', MerchantKey);
+    console.log('MerchantCode: ', MerchantCode);
+    console.log('RefNo: ', RefNo);
+    console.log('cAmount: ', cAmount);
+    console.log('Currency: ', Currency);
+    console.log('Signature: ', Signature);
 
     // SAVE TO DYNAMODB table name: ipay88_logs
     let d = Math.floor(Date.now() / 1000);
@@ -83,6 +94,8 @@ module.exports.paymentrequest = (event, context, callback) => {
             user_id: uuidv4(),
             name: UserName,
             email: UserEmail,
+            bot_alias: bot_alias,
+            bot_name: bot_name,
             contact: UserContact,
             product_title: ProdDesc,
             amount: Amount,
@@ -175,6 +188,8 @@ module.exports.requestresponse = (event, context, callback) => {
 
     let parseurl = getUrlVars(event.body);
     let response = null;
+
+    console.log(parseurl);
 
     // let json = JSON.parse(event.body);
 
@@ -337,7 +352,11 @@ module.exports.backendresponse = (event, context, callback) => {
 // THIS IS THE MODULE TO SAVE THE DATA FROM FACEBOOK. THIS WILL BE TRIGGERED BY SHARIES CODE.
 module.exports.ipay88handler = (event, context, callback) => {
 
+  const handlerId = uuidv4();
+  
   if(event.httpMethod === "POST" && event.body){
+    
+    let payment_method = null;
 
     // RESULT: {"MerchantCode":"PH00419","PaymentId":"1","RefNo":"G94988540","Amount":"25.00","Currency":"PHP","Remark":"","TransId":"T0022974300","AuthCode":"","Status":"1","ErrDesc":"","Signature":"yzK0mbAXrZHI%2FoCb2mqdxLxOOI8%3D"}}
 
@@ -347,18 +366,23 @@ module.exports.ipay88handler = (event, context, callback) => {
     let parseurl = getUrlVars(event.body);
     let response = null;
 
+    if(parseurl.payment_method === 'credit_card') payment_method = 1;
+    if(parseurl.payment_method === 'bancnet') payment_method = 5;
+
     // SAVE TO DYNAMODB table name: ipay88_handler
-    let d = Math.floor(Date.now() / 1000);
+    let d = Math.floor(Date.now() / 1000);    
     let createParams = {
         TableName: ipay88.IPAY88_HANDLER,
         Item: {
-            handler_id: uuidv4(),
+            handler_id: handlerId,
             name: parseurl.name.replace(/\+/g, ' '),
+            bot_alias: parseurl.bot_alias,
+            bot_name: parseurl.bot_name.replace(/\+/g, ' '),
             email: decodeURIComponent(parseurl.email),
             contact: parseurl.contact,
             product_title: parseurl.product_title.replace(/\+/g, ' '),
             amount: parseurl.amount,
-            payment_method: parseurl.paymentid,
+            payment_method: payment_method,
             page_access_token: parseurl.page_access_token,
             scoped_id: parseurl.scoped_id,
             created_at: d
@@ -383,10 +407,12 @@ module.exports.ipay88handler = (event, context, callback) => {
 
   const response = {
       statusCode: 200,
-      headers: {
-          'Content-Type': 'text/html',
-      },
-      body: 'Process Completed!'
+      body: JSON.stringify({
+        result : true,
+        message : 'Process Completed!',
+        hid : handlerId,
+        payment_url : '/payment-request?hid=' + handlerId 
+      }),
   };
 
   callback(null, response);
