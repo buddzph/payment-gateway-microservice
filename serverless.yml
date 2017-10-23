@@ -11,6 +11,7 @@ functions:
          method: get
   requestresponse:
     handler: handler.requestresponse
+    timeout: 30
     events:
      - http:
          path: ipay88/request-response
@@ -20,7 +21,7 @@ functions:
     events:
      - http:
          path: ipay88/backend-response
-         method: get
+         method: post
   ipay88handler:
     handler: handler.ipay88handler
     events:

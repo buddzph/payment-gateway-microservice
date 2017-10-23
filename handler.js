@@ -11,6 +11,17 @@ const lexruntime = new AWS.LexRuntime();
 
 const uuidv4 = require('uuid/v4');
 
+function getUrlVars(url) {
+    var hash;
+    var myJson = {};
+    var hashes = url.slice(url.indexOf('?') + 1).split('&');
+    for (var i = 0; i < hashes.length; i++) {
+        hash = hashes[i].split('=');
+        myJson[hash[0]] = hash[1];
+    }
+    return myJson;
+}
+
 // THIS IS THE MODULE TO PROCESS THE PAYMENT GOING TO IPAY88 PAYMENT PAGE
 module.exports.paymentrequest = (event, context, callback) => {
 
@@ -22,6 +33,30 @@ module.exports.paymentrequest = (event, context, callback) => {
   event["queryStringParameters"]['queryparam1']
   event['requestContext']['identity']['userAgent']
   event['requestContext']['identity']['sourceIP']*/
+
+  let checkAvailability = (hid) => {
+    return new Promise((resolve, reject) =>{
+      // GET THE DATA FROM ipay88_handler
+      var getParams = {
+          TableName: ipay88.IPAY88_LOGS,
+          IndexName: "user_id-transaction_status-index",
+          KeyConditionExpression: "user_id = :p AND transaction_status = :u",
+          ExpressionAttributeValues: {
+              ':p': hid,
+              ':u': 1
+          }
+      };
+
+      db.query(getParams, function (err, data) {
+        if(err){
+          // console.log('DATA NOT FOUND', err);
+          resolve(null);
+        }else{
+          resolve(data);
+        }
+      });
+    });
+  };
 
   let getdataipay88handler = (hid) => {
     return new Promise((resolve, reject) =>{
@@ -47,124 +82,143 @@ module.exports.paymentrequest = (event, context, callback) => {
   // Chain with catch
   let v_hid = event["queryStringParameters"]['hid'];
 
-  getdataipay88handler(v_hid).then( res =>{
-    console.log("Data: ", res);
+  // PROMISE 01
+  checkAvailability(v_hid).then( res =>{
+    if(res.Items.length === 0){
+      console.log('check 0: ', res);
+      console.log('check 1: ', v_hid);
+      return getdataipay88handler(v_hid);
+    }else{
+      console.log('check 1: ', v_hid);
+      console.log('check 2: ', res);
+      return Promise.resolve(null);
+    }
+  }).then( d_data =>{
+    console.log("Data: ", d_data);
 
-    // REMOVE PERIOD AND COMMA
-    let tAmount = res.Items[0].amount;
+    if(d_data === null){
 
-    // IPAY88 ACCESS
-    let actionURL = ipay88.ACTION_URL;
-    let MerchantCode = ipay88.MERCHANT_CODE;
-    let MerchantKey = ipay88.MERCHANT_KEY;
+        let html = transactionlayout.htmlExpiredTemplate();
+        const response = {
+            statusCode: 200,
+            headers: {
+                'Content-Type': 'text/html',
+            },
+            body: html
+        };
+        callback(null, response);
 
-    let PaymentId = res.Items[0].payment_method;
-    let RefNo = ipay88.REFNO_PREFIX + Math.floor(10000000 + Math.random() * 90000000);;
-    let Amount = tAmount;
-    let cAmount = tAmount.replace(/^[,. ]+|[,. ]+$|[,. ]+/g, "").trim();
-    let Currency = ipay88.CURRENCY;
-    let ProdDesc = res.Items[0].product_title;
-    let UserName = res.Items[0].name;
-    let UserEmail = res.Items[0].email;
-    let UserContact = res.Items[0].contact;
-    let bot_alias = res.Items[0].bot_alias;
-    let bot_name = res.Items[0].bot_name;
-    let Remark = '';
-    let Lang = ipay88.LANG;
-    let Signature = sha1.iPay88Signature(MerchantKey + MerchantCode + RefNo + cAmount + Currency); // 'v4f93AFaktObj79KywOlXbLAeTc=';
-    let ResponseURL = ipay88.RESPONSE_URL;
-    let BackendURL = ipay88.BACKEND_URL;
-    let PageAccesstoken = res.Items[0].page_access_token;
-    let ScopedID = res.Items[0].scoped_id;
+    }else{
 
-    console.log('Items: ', res.Items);
-    console.log('MerchantKey: ', MerchantKey);
-    console.log('MerchantCode: ', MerchantCode);
-    console.log('RefNo: ', RefNo);
-    console.log('cAmount: ', cAmount);
-    console.log('Currency: ', Currency);
-    console.log('Signature: ', Signature);
+        // REMOVE PERIOD AND COMMA
+        let tAmount = d_data.Items[0].amount;
+        // console.log('amount to clean: ', tAmount);
+        let tsAmount = tAmount.toString();
+        let remAmountCommaSpace = tsAmount.replace(/[, ]+/g, "").trim();
+        let remAmountPeriod = remAmountCommaSpace.replace(/\./g, ""); 
 
-    // SAVE TO DYNAMODB table name: ipay88_logs
-    let d = Math.floor(Date.now() / 1000);
-    let createParams = {
-        TableName: ipay88.IPAY88_LOGS,
-        Item: {
-            id: RefNo,
-            user_id: uuidv4(),
-            name: UserName,
-            email: UserEmail,
-            bot_alias: bot_alias,
-            bot_name: bot_name,
-            contact: UserContact,
-            product_title: ProdDesc,
-            amount: Amount,
-            payment_method: PaymentId,
-            page_access_token: PageAccesstoken,
-            scoped_id: ScopedID,
-            transaction_status: 0,
-            created_at: d,
-            updated_at: null
-        }
-    };
+        // IPAY88 ACCESS
+        let actionURL = ipay88.ACTION_URL;
+        let MerchantCode = ipay88.MERCHANT_CODE;
+        let MerchantKey = ipay88.MERCHANT_KEY;
 
-    // Use create dynamoDB function and place resolve/reject (*)
-    db.put(createParams, (e, data) => {
-        if (e) {
-            console.log("Error on PUT ITEM", e);
-            // reject(e);
-        } else {
-            // resolve(payment);
-            console.log("LOGS SUCCESSFULLY CREATED");
-        }
-    });
+        let PaymentId = d_data.Items[0].payment_method;
+        let RefNo = ipay88.REFNO_PREFIX + Math.floor(10000000 + Math.random() * 90000000);;
+        let Amount = tAmount;
+        let cAmount = remAmountPeriod;
+        let Currency = ipay88.CURRENCY;
+        let ProdDesc = d_data.Items[0].product_title;
+        let UserName = d_data.Items[0].name;
+        let UserEmail = d_data.Items[0].email;
+        let UserContact = d_data.Items[0].contact;
+        let bot_alias = d_data.Items[0].bot_alias;
+        let bot_name = d_data.Items[0].bot_name;
+        let Remark = '';
+        let Lang = ipay88.LANG;
+        let Signature = sha1.iPay88Signature(MerchantKey + MerchantCode + RefNo + cAmount + Currency); // 'v4f93AFaktObj79KywOlXbLAeTc=';
+        let ResponseURL = ipay88.RESPONSE_URL;
+        let BackendURL = ipay88.BACKEND_URL;
+        let PageAccesstoken = d_data.Items[0].page_access_token;
+        let ScopedID = d_data.Items[0].scoped_id;
 
-    const html = `
-    <FORM method="post" name="ePayment" id="ePayment" action="${actionURL}">
-      <INPUT type="hidden" name="MerchantCode" value="${MerchantCode}">
-      <INPUT type="hidden" name="PaymentId" value="${PaymentId}">
-      <INPUT type="hidden" name="RefNo" value="${RefNo}">
-      <INPUT type="hidden" name="Amount" value="${Amount}">
-      <INPUT type="hidden" name="Currency" value="${Currency}">
-      <INPUT type="hidden" name="ProdDesc" value="${ProdDesc}">
-      <INPUT type="hidden" name="UserName" value="${UserName}">
-      <INPUT type="hidden" name="UserEmail" value="${UserEmail}">
-      <INPUT type="hidden" name="UserContact" value="${UserContact}">
-      <INPUT type="hidden" name="Remark" value="${Remark}">
-      <INPUT type="hidden" name="Lang" value="${Lang}">
-      <INPUT type="hidden" name="Signature" value="${Signature}">
-      <INPUT type="hidden" name="ResponseURL" value="${ResponseURL}">
-      <INPUT type="hidden" name="BackendURL" value="${BackendURL}">
-    </FORM>
-    <script type="text/javascript">document.getElementById("ePayment").submit();</script>`;
+        console.log('Items: ', d_data.Items);
+        console.log('MerchantKey: ', MerchantKey);
+        console.log('MerchantCode: ', MerchantCode);
+        console.log('RefNo: ', RefNo);
+        console.log('cAmount: ', cAmount);
+        console.log('Currency: ', Currency);
+        console.log('Signature: ', Signature);
 
-    const response = {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'text/html',
-      },
-      body: html,
-    };
+        // SAVE TO DYNAMODB table name: ipay88_logs
+        let d = Math.floor(Date.now() / 1000);
+        let createParams = {
+            TableName: ipay88.IPAY88_LOGS,
+            Item: {
+                id: RefNo,
+                user_id: v_hid,
+                name: UserName,
+                email: UserEmail,
+                bot_alias: bot_alias,
+                bot_name: bot_name,
+                contact: UserContact,
+                product_title: ProdDesc,
+                amount: Amount,
+                payment_method: PaymentId,
+                page_access_token: PageAccesstoken,
+                scoped_id: ScopedID,
+                transaction_status: 0,
+                created_at: d,
+                updated_at: null
+            }
+        };
 
-    // callback is sending HTML back
-    callback(null, response);
+        // Use create dynamoDB function and place resolve/reject (*)
+        db.put(createParams, (e, data) => {
+            if (e) {
+                console.log("Error on PUT ITEM", e);
+                // reject(e);
+            } else {
+                // resolve(payment);
+                console.log("LOGS SUCCESSFULLY CREATED");
+            }
+        });
 
-  }, err => console.log("Error Exist!:", err));
+        const html = `
+        <FORM method="post" name="ePayment" id="ePayment" action="${actionURL}">
+          <INPUT type="hidden" name="MerchantCode" value="${MerchantCode}">
+          <INPUT type="hidden" name="PaymentId" value="${PaymentId}">
+          <INPUT type="hidden" name="RefNo" value="${RefNo}">
+          <INPUT type="hidden" name="Amount" value="${Amount}">
+          <INPUT type="hidden" name="Currency" value="${Currency}">
+          <INPUT type="hidden" name="ProdDesc" value="${ProdDesc}">
+          <INPUT type="hidden" name="UserName" value="${UserName}">
+          <INPUT type="hidden" name="UserEmail" value="${UserEmail}">
+          <INPUT type="hidden" name="UserContact" value="${UserContact}">
+          <INPUT type="hidden" name="Remark" value="${Remark}">
+          <INPUT type="hidden" name="Lang" value="${Lang}">
+          <INPUT type="hidden" name="Signature" value="${Signature}">
+          <INPUT type="hidden" name="ResponseURL" value="${ResponseURL}">
+          <INPUT type="hidden" name="BackendURL" value="${BackendURL}">
+        </FORM>
+        <script type="text/javascript">document.getElementById("ePayment").submit();</script>`;
+
+        const response = {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'text/html',
+          },
+          body: html,
+        };
+
+        // callback is sending HTML back
+        callback(null, response);
+    }
+
+  }).catch(err => console.log("Error Exist!:", err));
 
   // Use this code if you don't use the http event with the LAMBDA-PROXY integration
   // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
 };
-
-function getUrlVars(url) {
-    var hash;
-    var myJson = {};
-    var hashes = url.slice(url.indexOf('?') + 1).split('&');
-    for (var i = 0; i < hashes.length; i++) {
-        hash = hashes[i].split('=');
-        myJson[hash[0]] = hash[1];
-    }
-    return myJson;
-}
 
 // THIS IS THE MODULE FOR THE COMPLETE PROCESS
 module.exports.requestresponse = (event, context, callback) => {
@@ -271,18 +325,18 @@ module.exports.requestresponse = (event, context, callback) => {
         //       "string" : "string"
         //    }
         // }
-        let triggerIntentSlotUtterance = `Paid with ${parseurl.RefNo}`;
+        let triggerIntentSlotUtterance = `Paid with ${res.Items[0].user_id}`;
 
         let lexParams = {
-            botAlias: 'demoBot',
+            botAlias: res.Items[0].bot_alias,
             /* required */
-            botName: 'PaymentBot',
+            botName: res.Items[0].bot_name,
             /* required */
             inputText: triggerIntentSlotUtterance,
             /* required */
-            userId: res.Items[0].user_id,
+            userId: res.Items[0].scoped_id,
             /* required */
-            sessionAttributes: {}
+            sessionAttributes: { mobile_number: res.Items[0].contact }
         };
         console.log("Lex Parameter", lexParams);
         lexruntime.postText(lexParams, (err, data) => {
@@ -335,18 +389,42 @@ module.exports.requestresponse = (event, context, callback) => {
 
 // THIS IS THE MODULE FOR IPAY88 BACKEND RESPONSE
 module.exports.backendresponse = (event, context, callback) => {
+
+  // { MerchantCode: 'PH00419', PaymentId: '1', RefNo: 'G79849192', Amount: '250.00', Currency: 'PHP', Remark: '', TransId: 'T0023025200', AuthCode: '', Status: '1', ErrDesc: '', Signature: 'VHrDAc1YwYFS4t1IYsoCps4aUhk' }
+
+  /*let parseurl = 'Backend Result';
+
+  if(event.httpMethod === "POST" && event.body){
+
+    parseurl = getUrlVars(event.body);
+
+    console.log('BACKEND RESPONSE: ', parseurl);
+
+  }
+
   const response = {
     statusCode: 200,
     body: JSON.stringify({
-      message: 'Payment Backend Response Page!',
+      resdata: parseurl,
+      message: 'RECEIVEOK',
       // input: event,
     }),
   };
 
+  callback(null, response);*/
+
+  let html = 'RECEIVEOK';
+
+  const response = {
+      statusCode: 200,
+      headers: {
+          'Content-Type': 'text/html',
+      },
+      body: html
+  };
+
   callback(null, response);
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
 };
 
 // THIS IS THE MODULE TO SAVE THE DATA FROM FACEBOOK. THIS WILL BE TRIGGERED BY SHARIES CODE.
@@ -363,11 +441,31 @@ module.exports.ipay88handler = (event, context, callback) => {
     /*let stringit = JSON.stringify(event.body);
     let parseurl = JSON.parse(stringit);*/
 
-    let parseurl = getUrlVars(event.body);
+    // let parseurl = getUrlVars(event.body); // NOT USING THIS, SHARIE WILL SEND JSON PARAMS
+    let parseurl = JSON.parse(event.body);
     let response = null;
 
+    if(parseurl.payment_method === 'any' || parseurl.payment_method === '') payment_method = 0;
     if(parseurl.payment_method === 'credit_card') payment_method = 1;
     if(parseurl.payment_method === 'bancnet') payment_method = 5;
+
+    let user_name = '';
+
+    if(parseurl.name != ''){
+      user_name = parseurl.name.replace(/\+/g, ' ');
+    }
+
+    let d_botname = '';
+
+    if(parseurl.bot_name != ''){
+      d_botname = parseurl.bot_name.replace(/\+/g, ' ');
+    }
+
+    let productTitle = '';
+
+    if(parseurl.product_title != ''){
+      productTitle = parseurl.product_title.replace(/\+/g, ' ');
+    }
 
     // SAVE TO DYNAMODB table name: ipay88_handler
     let d = Math.floor(Date.now() / 1000);    
@@ -375,12 +473,12 @@ module.exports.ipay88handler = (event, context, callback) => {
         TableName: ipay88.IPAY88_HANDLER,
         Item: {
             handler_id: handlerId,
-            name: parseurl.name.replace(/\+/g, ' '),
+            name: user_name,
             bot_alias: parseurl.bot_alias,
-            bot_name: parseurl.bot_name.replace(/\+/g, ' '),
+            bot_name: d_botname,
             email: decodeURIComponent(parseurl.email),
             contact: parseurl.contact,
-            product_title: parseurl.product_title.replace(/\+/g, ' '),
+            product_title: productTitle,
             amount: parseurl.amount,
             payment_method: payment_method,
             page_access_token: parseurl.page_access_token,

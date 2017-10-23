@@ -128,7 +128,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/lambda-test/dev/1508143851429-2017-10-16T08:50:51.429Z/lambda-test.zip"
+          "S3Key": "serverless/lambda-test/dev/1508470063325-2017-10-20T03:27:43.325Z/lambda-test.zip"
         },
         "FunctionName": "lambda-test-dev-paymentrequest",
         "Handler": "handler.paymentrequest",
@@ -147,14 +147,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "PaymentrequestLambdaVersionfukSoZDpRsCkMbrTGGF6WEXM0XattA3GcUyWAou0": {
+    "PaymentrequestLambdaVersionnt0mOE5GTgeLZb08khaNp8HHvn3n9fVEIKmNycyU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "PaymentrequestLambdaFunction"
         },
-        "CodeSha256": "fu+kSoZDpRsCkMbrTGGF6WEX//M0XattA3GcUyWAou0="
+        "CodeSha256": "+nt0mOE5GTgeLZb08khaNp8HHv/n3/n9fVEIKmNycyU="
       }
     },
     "RequestresponseLambdaFunction": {
@@ -164,7 +164,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/lambda-test/dev/1508143851429-2017-10-16T08:50:51.429Z/lambda-test.zip"
+          "S3Key": "serverless/lambda-test/dev/1508470063325-2017-10-20T03:27:43.325Z/lambda-test.zip"
         },
         "FunctionName": "lambda-test-dev-requestresponse",
         "Handler": "handler.requestresponse",
@@ -176,21 +176,21 @@
           ]
         },
         "Runtime": "nodejs6.10",
-        "Timeout": 6
+        "Timeout": 18
       },
       "DependsOn": [
         "RequestresponseLogGroup",
         "IamRoleLambdaExecution"
       ]
     },
-    "RequestresponseLambdaVersionfukSoZDpRsCkMbrTGGF6WEXM0XattA3GcUyWAou0": {
+    "RequestresponseLambdaVersionnt0mOE5GTgeLZb08khaNp8HHvn3n9fVEIKmNycyU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "RequestresponseLambdaFunction"
         },
-        "CodeSha256": "fu+kSoZDpRsCkMbrTGGF6WEX//M0XattA3GcUyWAou0="
+        "CodeSha256": "+nt0mOE5GTgeLZb08khaNp8HHv/n3/n9fVEIKmNycyU="
       }
     },
     "BackendresponseLambdaFunction": {
@@ -200,7 +200,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/lambda-test/dev/1508143851429-2017-10-16T08:50:51.429Z/lambda-test.zip"
+          "S3Key": "serverless/lambda-test/dev/1508470063325-2017-10-20T03:27:43.325Z/lambda-test.zip"
         },
         "FunctionName": "lambda-test-dev-backendresponse",
         "Handler": "handler.backendresponse",
@@ -219,14 +219,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "BackendresponseLambdaVersionfukSoZDpRsCkMbrTGGF6WEXM0XattA3GcUyWAou0": {
+    "BackendresponseLambdaVersionnt0mOE5GTgeLZb08khaNp8HHvn3n9fVEIKmNycyU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "BackendresponseLambdaFunction"
         },
-        "CodeSha256": "fu+kSoZDpRsCkMbrTGGF6WEX//M0XattA3GcUyWAou0="
+        "CodeSha256": "+nt0mOE5GTgeLZb08khaNp8HHv/n3/n9fVEIKmNycyU="
       }
     },
     "Ipay88handlerLambdaFunction": {
@@ -236,7 +236,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/lambda-test/dev/1508143851429-2017-10-16T08:50:51.429Z/lambda-test.zip"
+          "S3Key": "serverless/lambda-test/dev/1508470063325-2017-10-20T03:27:43.325Z/lambda-test.zip"
         },
         "FunctionName": "lambda-test-dev-ipay88handler",
         "Handler": "handler.ipay88handler",
@@ -255,14 +255,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "Ipay88handlerLambdaVersionfukSoZDpRsCkMbrTGGF6WEXM0XattA3GcUyWAou0": {
+    "Ipay88handlerLambdaVersionnt0mOE5GTgeLZb08khaNp8HHvn3n9fVEIKmNycyU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "Ipay88handlerLambdaFunction"
         },
-        "CodeSha256": "fu+kSoZDpRsCkMbrTGGF6WEX//M0XattA3GcUyWAou0="
+        "CodeSha256": "+nt0mOE5GTgeLZb08khaNp8HHv/n3/n9fVEIKmNycyU="
       }
     },
     "ApiGatewayRestApi": {
@@ -410,10 +410,10 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayMethodIpay88BackendDashresponseGet": {
+    "ApiGatewayMethodIpay88BackendDashresponsePost": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "GET",
+        "HttpMethod": "POST",
         "RequestParameters": {},
         "ResourceId": {
           "Ref": "ApiGatewayResourceIpay88BackendDashresponse"
@@ -486,7 +486,7 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1508143851440": {
+    "ApiGatewayDeployment1508470063337": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -497,7 +497,7 @@
       "DependsOn": [
         "ApiGatewayMethodIpay88PaymentDashrequestGet",
         "ApiGatewayMethodIpay88RequestDashresponsePost",
-        "ApiGatewayMethodIpay88BackendDashresponseGet",
+        "ApiGatewayMethodIpay88BackendDashresponsePost",
         "ApiGatewayMethodIpay88Ipay88DashhandlerPost"
       ]
     },
@@ -643,25 +643,25 @@
     "PaymentrequestLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "PaymentrequestLambdaVersionfukSoZDpRsCkMbrTGGF6WEXM0XattA3GcUyWAou0"
+        "Ref": "PaymentrequestLambdaVersionnt0mOE5GTgeLZb08khaNp8HHvn3n9fVEIKmNycyU"
       }
     },
     "RequestresponseLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "RequestresponseLambdaVersionfukSoZDpRsCkMbrTGGF6WEXM0XattA3GcUyWAou0"
+        "Ref": "RequestresponseLambdaVersionnt0mOE5GTgeLZb08khaNp8HHvn3n9fVEIKmNycyU"
       }
     },
     "BackendresponseLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "BackendresponseLambdaVersionfukSoZDpRsCkMbrTGGF6WEXM0XattA3GcUyWAou0"
+        "Ref": "BackendresponseLambdaVersionnt0mOE5GTgeLZb08khaNp8HHvn3n9fVEIKmNycyU"
       }
     },
     "Ipay88handlerLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "Ipay88handlerLambdaVersionfukSoZDpRsCkMbrTGGF6WEXM0XattA3GcUyWAou0"
+        "Ref": "Ipay88handlerLambdaVersionnt0mOE5GTgeLZb08khaNp8HHvn3n9fVEIKmNycyU"
       }
     },
     "ServiceEndpoint": {
