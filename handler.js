@@ -140,6 +140,7 @@ module.exports.paymentrequest = (event, context, callback) => {
         let BackendURL = ipay88.BACKEND_URL;
         let PageAccesstoken = d_data.Items[0].page_access_token;
         let ScopedID = d_data.Items[0].scoped_id;
+        let ItemCode = (!!d_data.Items[0].item_code) ? d_data.Items[0].item_code : null;
 
         console.log('Items: ', d_data.Items);
         console.log('MerchantKey: ', MerchantKey);
@@ -167,6 +168,7 @@ module.exports.paymentrequest = (event, context, callback) => {
                 page_access_token: PageAccesstoken,
                 scoped_id: ScopedID,
                 transaction_status: 0,
+                item_code: ItemCode,
                 created_at: d,
                 updated_at: null
             }
@@ -307,13 +309,26 @@ module.exports.requestresponse = (event, context, callback) => {
       // Chain with catch
       facebookcodehookreturnresponse(parseurl.RefNo).then( res =>{
         let messengerEndpoint = 'https://84j8nb34n1.execute-api.us-east-1.amazonaws.com/dev/messenger-api/access';
-        let msParams = {
-            access_token: res.Items[0].page_access_token,
-            data: { message: ipay88.MSG_SUCCESSFUL_TRANSACTION },
-            action_type: "TEXT_MESSAGE",
-            psid: res.Items[0].scoped_id,
-            push: "REGULAR"
-        };
+        let qR = [{
+                 content_type: "text",
+                 title: "YES, Subscribe me!",
+                 payload: "YES_SUBSCRIBE_ME"
+                },
+               {
+                   content_type: "text",
+                   title: "NO, Thanks!",
+                   payload: "NO_THANKS"
+               }
+           ];
+           let msParams = {
+               access_token: res.Items[0].page_access_token,
+               data: { attachment: ipay88.MSG_SUCCESSFUL_TRANSACTION, quickReplies: qR },
+               action_type: "QUICK_REPLIES_MESSAGE",
+               psid: res.Items[0].scoped_id,
+               push: "REGULAR"
+           };
+
+
 
         // Post Text to Bot
         // POST /bot/botName/alias/botAlias/user/userId/text HTTP/1.1
@@ -325,6 +340,7 @@ module.exports.requestresponse = (event, context, callback) => {
         //       "string" : "string"
         //    }
         // }
+        
         let triggerIntentSlotUtterance = `Paid with ${res.Items[0].user_id}`;
 
         let lexParams = {
@@ -336,7 +352,7 @@ module.exports.requestresponse = (event, context, callback) => {
             /* required */
             userId: res.Items[0].scoped_id,
             /* required */
-            sessionAttributes: { mobile_number: res.Items[0].contact }
+            sessionAttributes: { mobile_number: res.Items[0].contact, item_code: (!!res.Items[0].item_code) ? res.Items[0].item_code : null }
         };
         console.log("Lex Parameter", lexParams);
         lexruntime.postText(lexParams, (err, data) => {
@@ -483,6 +499,7 @@ module.exports.ipay88handler = (event, context, callback) => {
             payment_method: payment_method,
             page_access_token: parseurl.page_access_token,
             scoped_id: parseurl.scoped_id,
+            item_code: (!!parseurl.item_code) ? parseurl.item_code : null,
             created_at: d
         }
     };

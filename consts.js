@@ -29,7 +29,7 @@ const ipay88Constants = {
   IPAY88_LOGS : 'ipay88_logs',
 
   /** iPay88 Messages */
-  MSG_SUCCESSFUL_TRANSACTION :  `Your iPay88 transaction has been acknowledged and verified. Thank you for your purchase!`,
+  MSG_SUCCESSFUL_TRANSACTION :  `Your transaction is successful! Thank you for choosing PAYLOAD:) You will receive an SMS confirmation shortly. Happy to asisst you again with your next load purchase soon :) Want to receive updates and load promos? Click YES below `,
   MSG_FAILED_TRANSACTION :  `Your iPay88 transaction has a problem. Please try again by clicking again the buy button.`,
 
 };
