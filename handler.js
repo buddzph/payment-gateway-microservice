@@ -24,16 +24,6 @@ function getUrlVars(url) {
 
 // THIS IS THE MODULE TO PROCESS THE PAYMENT GOING TO IPAY88 PAYMENT PAGE
 module.exports.paymentrequest = (event, context, callback) => {
-
-  // TEST URL: https://nt6kh0sqzb.execute-api.us-east-1.amazonaws.com/dev/ipay88/payment-request?hid=7b54b33e-eee2-47a1-8352-3e94dc9c1f87 - buddz
-  // TEST URL: https://nt6kh0sqzb.execute-api.us-east-1.amazonaws.com/dev/ipay88/payment-request?hid=c4c415c1-712b-4e93-a139-30851876a6d0 - sharie
-
-  // REFERENCE: Passing of value
-  /*event['pathParameters']['param1']
-  event["queryStringParameters"]['queryparam1']
-  event['requestContext']['identity']['userAgent']
-  event['requestContext']['identity']['sourceIP']*/
-
   let checkAvailability = (hid) => {
     return new Promise((resolve, reject) =>{
       // GET THE DATA FROM ipay88_handler
@@ -217,26 +207,10 @@ module.exports.paymentrequest = (event, context, callback) => {
     }
 
   }).catch(err => console.log("Error Exist!:", err));
-
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
 };
 
 // THIS IS THE MODULE FOR THE COMPLETE PROCESS
 module.exports.requestresponse = (event, context, callback) => {
-
-  console.log("event", event);
-  console.log("context", context);
-
-  /*const response = {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Payment Response Page!',
-      // input: event,
-    }),
-  };
-
-  callback(null, response);*/
 
   if(event.httpMethod === "POST" && event.body){
 
@@ -244,19 +218,6 @@ module.exports.requestresponse = (event, context, callback) => {
 
     let parseurl = getUrlVars(event.body);
     let response = null;
-
-    console.log(parseurl);
-
-    // let json = JSON.parse(event.body);
-
-    /*return callback(null, {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: 'Hi, I have receive a json object from you!',
-        object: parseurl
-        // input: event,
-      }),
-    })*/
 
     if(Number(parseurl.Status) === 1) {
 
@@ -308,7 +269,7 @@ module.exports.requestresponse = (event, context, callback) => {
 
       // Chain with catch
       facebookcodehookreturnresponse(parseurl.RefNo).then( res =>{
-        let messengerEndpoint = 'https://84j8nb34n1.execute-api.us-east-1.amazonaws.com/dev/messenger-api/access';
+        let messengerEndpoint = 'Accesspoint-link-here. Check Original for best example';
         let qR = [{
                  content_type: "text",
                  title: "YES, Subscribe me!",
@@ -327,19 +288,6 @@ module.exports.requestresponse = (event, context, callback) => {
                psid: res.Items[0].scoped_id,
                push: "REGULAR"
            };
-
-
-
-        // Post Text to Bot
-        // POST /bot/botName/alias/botAlias/user/userId/text HTTP/1.1
-        // Content-type: application/json
-
-        // {
-        //    "inputText": "string",
-        //    "sessionAttributes": {
-        //       "string" : "string"
-        //    }
-        // }
         
         let triggerIntentSlotUtterance = `Paid with ${res.Items[0].user_id}`;
 
@@ -396,39 +344,11 @@ module.exports.requestresponse = (event, context, callback) => {
       callback(null, response);
 
     }
-
   }
-
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
 };
 
 // THIS IS THE MODULE FOR IPAY88 BACKEND RESPONSE
 module.exports.backendresponse = (event, context, callback) => {
-
-  // { MerchantCode: 'PH00419', PaymentId: '1', RefNo: 'G79849192', Amount: '250.00', Currency: 'PHP', Remark: '', TransId: 'T0023025200', AuthCode: '', Status: '1', ErrDesc: '', Signature: 'VHrDAc1YwYFS4t1IYsoCps4aUhk' }
-
-  /*let parseurl = 'Backend Result';
-
-  if(event.httpMethod === "POST" && event.body){
-
-    parseurl = getUrlVars(event.body);
-
-    console.log('BACKEND RESPONSE: ', parseurl);
-
-  }
-
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify({
-      resdata: parseurl,
-      message: 'RECEIVEOK',
-      // input: event,
-    }),
-  };
-
-  callback(null, response);*/
-
   let html = 'RECEIVEOK';
 
   const response = {
@@ -451,11 +371,6 @@ module.exports.ipay88handler = (event, context, callback) => {
   if(event.httpMethod === "POST" && event.body){
     
     let payment_method = null;
-
-    // RESULT: {"MerchantCode":"PH00419","PaymentId":"1","RefNo":"G94988540","Amount":"25.00","Currency":"PHP","Remark":"","TransId":"T0022974300","AuthCode":"","Status":"1","ErrDesc":"","Signature":"yzK0mbAXrZHI%2FoCb2mqdxLxOOI8%3D"}}
-
-    /*let stringit = JSON.stringify(event.body);
-    let parseurl = JSON.parse(stringit);*/
 
     // let parseurl = getUrlVars(event.body); // NOT USING THIS, SHARIE WILL SEND JSON PARAMS
     let parseurl = JSON.parse(event.body);

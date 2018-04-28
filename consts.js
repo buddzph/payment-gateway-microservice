@@ -6,23 +6,17 @@ const ipay88Constants = {
   /** Payment Method */
   PAYMENT_METHOD : 'iPay88',
 
-  /** Ipay88 Access */
   // SANDBOX
-  ACTION_URL : 'https://sandbox.ipay88.com.ph/epayment/entry.asp',
+  ACTION_URL : 'sandboxurl',
   MERCHANT_CODE : 'PH00419',
   MERCHANT_KEY : 'pbU3gDGvOr',
-
-  // PRODUCTION
-  /*ACTION_URL : 'https://payment.ipay88.com.ph/epayment/entry.asp',
-  MERCHANT_CODE : 'PH00479',
-  MERCHANT_KEY : 'VJOCMs03EC',*/
 
   /** CONSTANTS */
   REFNO_PREFIX : 'G',
   CURRENCY : 'PHP',
   LANG : 'UTF-8',
-  RESPONSE_URL : 'https://nt6kh0sqzb.execute-api.us-east-1.amazonaws.com/dev/ipay88/request-response',
-  BACKEND_URL : 'https://nt6kh0sqzb.execute-api.us-east-1.amazonaws.com/dev/ipay88/backend-response',
+  RESPONSE_URL : 'response_url',
+  BACKEND_URL : 'backend_url',
 
   /** DynamoDB Tables */
   IPAY88_HANDLER : 'ipay88_handler',
